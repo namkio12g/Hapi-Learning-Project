@@ -18,7 +18,7 @@ const start = async () => {
 
   await server.start();
   console.log("server run on ", server.info.uri);
-  console.log("hello");
+  console.log("hello1111");
 };
 start().catch((err) => {
   console.log(err);
