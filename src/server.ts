@@ -3,23 +3,23 @@ import Hapi, { ResponseToolkit, Request } from "@hapi/hapi";
 // import the server
 
 const start = async () => {
-    const server = Hapi.server({
-        port: EnvConfig.port,
-        host: EnvConfig.host,
-    });
+  const server = Hapi.server({
+    port: EnvConfig.port,
+    host: EnvConfig.host,
+  });
 
-    server.route({
-        method: "GET",
-        path: "/",
-        handler: (request, h) => {
-            return "Hello! Hapi";
-        },
-    });
+  server.route({
+    method: "GET",
+    path: "/",
+    handler: (request, h) => {
+      return "Hello! Hapi";
+    },
+  });
 
-    await server.start();
-    console.log("server run on ", server.info.uri);
+  await server.start();
+  console.log("server run on1 ", server.info.uri);
 };
 start().catch((err) => {
-    console.log(err);
-    process.exit(1);
+  console.log(err);
+  process.exit(1);
 });
