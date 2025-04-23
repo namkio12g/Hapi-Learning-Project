@@ -4,40 +4,69 @@ const StudentRoutes = (server: Server) => {
   server.route([
     {
       method: "get",
-      path: "/user/{id}",
+      path: "/student/{id}",
       handler: (request, reply) => {
-        console.log(request.params.id);
-        return StudentController.geStudents();
+        return StudentController.getOneStudent(request.params.id);
       },
     },
     {
       method: "post",
-      path: "/create-user",
+      path: "/student/create-student",
       handler: (request, reply) => {
         console.log(request.payload);
-        return StudentController.geStudents();
+        return StudentController.createNewStudent(request);
       },
     },
-    // {
-    //   method: "get",
-    //   path: "/user/{id}",
-    //   handler: (request, reply) => {
-    //     console.log(request.params.id);
-    //     return StudentController.geStudents();
-    //   },
-    // },
-    // {
-    //   method: "get",
-    //   path: "/user/{id}",
-    //   handler: (request, reply) => {
-    //     console.log(request.params.id);
-    //     return StudentController.geStudents();
-    //   },
-    // },
     {
       method: "get",
-      path: "/users",
-      handler: (request, reply) => {},
+      path: "/student/get-students",
+      handler: (request, reply) => {
+        return StudentController.geStudents(request);
+      },
+    },
+    {
+      method: "patch",
+      path: "/student/update-student",
+      handler: (request, reply) => {
+        return StudentController.updateStudent(request);
+      },
+    },
+
+    {
+      method: "delete",
+      path: "/student/delete/{id}",
+      handler: (request, reply) => {
+        const studentId = request.params.id;
+        return StudentController.deleteStudentById(studentId);
+      },
+    },
+    {
+      method: "delete",
+      path: "/student/delete/delete-students",
+      handler: (request, reply) => {
+        return StudentController.deleteStudents(request);
+      },
+    },
+    {
+      method: "patch",
+      path: "/student/add-class",
+      handler: (request, reply) => {
+        return StudentController.addClass(request);
+      },
+    },
+    {
+      method: "patch",
+      path: "/student/remove-class",
+      handler: (request, reply) => {
+        return StudentController.removeClass(request);
+      },
+    },
+    {
+      method: "get",
+      path: "/student/get-classes/{id}",
+      handler: (request, reply) => {
+        return StudentController.getClasses(request.params.id);
+      },
     },
   ]);
 };
