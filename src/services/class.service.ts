@@ -52,7 +52,9 @@ export const ClassService = {
 
   async getClassById(classId: string) {
     try {
-      return await ClassModel.findOne({ _id: classId });
+      const res = await ClassModel.findOne({ _id: classId });
+      console.log(res);
+      return res;
     } catch (error) {
       console.log(error);
     }

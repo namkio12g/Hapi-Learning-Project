@@ -80,7 +80,9 @@ export const StudentService = {
     try {
       let query: any = {};
       if (studentInfo.age) query.age = studentInfo.age;
+
       if (studentInfo.grade) query.grade = studentInfo.grade;
+
       if (studentInfo.name)
         query.name = { $regex: studentInfo.name, $options: "i" };
       if (studentInfo.address)
@@ -126,7 +128,7 @@ export const StudentService = {
       if (!studentObj) throw new Error("cant find the student");
 
       const classObj = await ClassModel.findById(adjustClassInfo.classId);
-      if (!classObj) throw new Error("cant find the student");
+      if (!classObj) throw new Error("cant find the class");
 
       const alreadyExist = studentObj.classes.some(
         (c: mongoose.Types.ObjectId) =>

@@ -2,6 +2,16 @@ import Joi from "joi";
 import ClassController from "../controller/class.controller";
 import { Server } from "@hapi/hapi";
 import { ObjectId } from "mongodb";
+import mongoose from "mongoose";
+const subjects = [
+  "Biology",
+  "Math",
+  "Geography",
+  "literature",
+  "Physical",
+  "History",
+  "English",
+];
 const ClassRoutes = (server: Server) => {
   server.route([
     {
@@ -14,13 +24,34 @@ const ClassRoutes = (server: Server) => {
             id: Joi.string()
               .pattern(/^[0-9a-fA-F]{24}$/)
               .required()
-              .description("Enter the class id1")
-              .example("507f1f77bcf86cd799439011"),
+              .description("Enter the class id")
+              .default("68077586ecb334127cd7b2f4"),
           }),
         },
+        response: {
+          status: {
+            200: Joi.object({
+              _id: Joi.example(
+                new mongoose.Types.ObjectId("68089144d7caca1db524becd")
+              ).object(),
+              room: Joi.string().example("PC100"),
+              subject: Joi.string()
+                .valid(...subjects)
+                .example("Math"),
+              studentCounts: Joi.number().min(0).example(30),
+            })
+              .label("UserResponse")
+              .unknown(true),
+          },
+        },
+
         handler: (request, reply) => {
           const classId = request.params.id;
-          return ClassController.getOneClass(classId);
+          try {
+            return ClassController.getOneClass(classId);
+          } catch (error) {
+            console.log(error);
+          }
         },
       },
     },
