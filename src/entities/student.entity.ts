@@ -5,5 +5,5 @@ export interface IStudent {
   grade: number;
   address: string;
   gender: string;
-  class: [Types.ObjectId];
+  classes: Types.ObjectId[];
 }

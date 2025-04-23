@@ -7,7 +7,13 @@ const StudentSchema = new mongoose.Schema({
   grade: { type: Number, require: true },
   address: { type: String },
   gender: { type: String, require: true },
-  class: { type: [mongoose.Schema.Types.ObjectId], ref: "Class", default: [] },
+  classes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Class",
+      default: [],
+    },
+  ],
 });
 export const StudentModel = mongoose.model<IStudentDocument>(
   "Student",
