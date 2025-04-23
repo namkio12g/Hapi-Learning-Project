@@ -72,7 +72,7 @@ export const ClassService = {
   async getStudents(classId: string) {
     try {
       const classObj = await ClassModel.findById(classId);
-      if (!classObj) return { message: "invalid class" };
+      if (!classObj) throw new Error();
       const students = StudentModel.find({ classes: { $in: [classId] } });
       return students;
     } catch (error) {

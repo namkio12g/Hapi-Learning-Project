@@ -106,7 +106,7 @@ export const StudentService = {
           c.equals(classObj._id as mongoose.Types.ObjectId)
       );
       if (alreadyExist) {
-        return { message: "class was added" };
+        throw new Error();
       }
       studentObj.classes.push(classObj._id as mongoose.Types.ObjectId);
       const res = await studentObj.save();
@@ -133,7 +133,7 @@ export const StudentService = {
           c.equals(classObj._id as mongoose.Types.ObjectId)
       );
       if (!alreadyExist) {
-        return { message: "This student doesnt have the class" };
+        throw new Error();
       }
       studentObj.classes = studentObj.classes.filter(
         (c: mongoose.Types.ObjectId) => !c.equals(adjustClassInfo.classId)
@@ -152,7 +152,7 @@ export const StudentService = {
   async getClasses(studentId: string) {
     try {
       const studentObj = await StudentModel.findById(studentId);
-      if (!studentObj) throw new Error();
+      if (!studentObj) return { message: "cant find the student" };
       const students = StudentModel.findById(studentId)
         .populate("classes")
         .exec();
