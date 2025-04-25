@@ -7,7 +7,8 @@ const CourseSchema: mongoose.Schema<ICourseDocument> =
     level: { type: String, required: true, enum: Object.values(CourseLevel) },
     timeStart: { type: Date, required: true, default: Date.now },
     timeEnd: { type: Date, required: true },
-    teacher: { type: Types.ObjectId, ref: "teacher" },
+    teacher: { type: Types.ObjectId, ref: "teacher", default: null },
+    price: { type: Number, default: 0 },
     studentsCount: { type: Number, default: 0 },
   });
 

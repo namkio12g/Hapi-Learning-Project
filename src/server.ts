@@ -3,8 +3,13 @@ import * as Hapi from "@hapi/hapi";
 import HapiSwagger from "hapi-swagger";
 import Inert from "@hapi/inert";
 import Vision from "@hapi/vision";
-import StudentRoutes from "./routes/student.route";
-import ClassRoutes from "./routes/course.route";
+import {
+  CourseRoutes,
+  EventRoutes,
+  TeacherRoutes,
+  StudentRoutes,
+  VoucherRoutes,
+} from "./routes/index";
 import { DbConnection } from "./config/dbConnect";
 import Boom from "@hapi/boom";
 import { agenda } from "./jobs/agenda";
@@ -45,14 +50,14 @@ const start = async () => {
   DbConnection.connectDb().catch(console.error);
 
   //---------------- agenda scheduling----------------//
-  try {
-    agenda.on("ready", async () => {
-      await agenda.start();
-      console.log("agenda is started");
-    });
-  } catch (error) {
-    console.error("agenda error", error);
-  }
+  //   try {
+  //     agenda.on("ready", async () => {
+  //       await agenda.start();
+  //       console.log("agenda is started");
+  //     });
+  //   } catch (error) {
+  //     console.error("agenda error", error);
+  //   }
 
   //---------------- Handling Global error (using boom)----------------//
   server.ext("onPreResponse", (request, h) => {
@@ -81,18 +86,13 @@ const start = async () => {
 
     return h.continue;
   });
-
-  //---------------- testing----------------//
-  //   server.route({
-  //     method: "GET",
-  //     path: "/",
-  //     handler: (request, h) => {
-  //       return "Hello! Hapi";
-  //     },
-  //   });
   //---------------- Routing----------------//
+  //   StudentRoutes(server);
+  CourseRoutes(server);
+  VoucherRoutes(server);
   StudentRoutes(server);
-  ClassRoutes(server);
+  EventRoutes(server);
+  TeacherRoutes(server);
   //---------------- Other----------------//
 
   await server.start();

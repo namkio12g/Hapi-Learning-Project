@@ -5,6 +5,10 @@ import mongoose from "mongoose";
 const LIMIT_NUMBER = 6;
 export const TeacherService = {
   async createTeacher(teacherInfo: ITeacherDocument) {
+    const teacherObj = await TeacherModel.findOne({
+      $or: [{ email: teacherInfo.email }, { phone: teacherInfo.phone }],
+    });
+    if (teacherObj) throw Boom.badRequest("Email or Phone have been used");
     try {
       const newTeacher = new TeacherModel(teacherInfo);
       return await newTeacher.save();
@@ -25,6 +29,13 @@ export const TeacherService = {
     teacherId: string,
     teacherInfo: Partial<ITeacherDocument>
   ) {
+    if (teacherInfo.email || teacherInfo.phone) {
+      const teacherObj = await TeacherModel.findOne({
+        $or: [{ email: teacherInfo.email }, { phone: teacherInfo.phone }],
+      });
+
+      if (teacherObj) throw Boom.badRequest("Email or Phone have been used");
+    }
     try {
       const updatedTeacherObj = await TeacherModel.findByIdAndUpdate(
         teacherId,
@@ -70,8 +81,12 @@ export const TeacherService = {
   },
   async updateTeachingCourse(teacherId: string, courseId: string) {
     const teacherObj = await TeacherModel.findById(teacherId);
+    if (!teacherObj) throw Boom.notFound(" Teacher are invalid");
     if (!courseId) {
       try {
+        await CourseModel.findByIdAndUpdate(teacherObj.teachingCourse, {
+          $set: { teacher: null },
+        });
         const updateTeacherObj = await TeacherModel.findByIdAndUpdate(
           teacherId,
           { $set: { teachingCourse: null } },
@@ -80,17 +95,23 @@ export const TeacherService = {
 
         return updateTeacherObj;
       } catch (error) {
-        throw Boom.badRequest("Had an error updating teacher null!");
+        throw Boom.badRequest("Had an error updating course for t null!");
       }
     }
     const courseObj = await CourseModel.findById(courseId);
-    if (!courseObj || !teacherObj) {
-      throw Boom.notFound("Teacher or Course are invalid");
-    }
+    if (!courseObj) throw Boom.notFound(" Course are invalid");
+
     const session = await mongoose.startSession();
 
     try {
       session.startTransaction();
+      if (teacherObj.teachingCourse) {
+        await CourseModel.findByIdAndUpdate(
+          teacherObj.teachingCourse,
+          { $set: { teacher: null } },
+          { session }
+        );
+      }
       await CourseModel.findByIdAndUpdate(
         courseId,
         { $set: { teacher: teacherObj._id } },
@@ -106,6 +127,7 @@ export const TeacherService = {
       return updateTeacherObj;
     } catch (error) {
       await session.abortTransaction();
+      console.log(error);
       throw Boom.badRequest("Had an error updating teacher");
     } finally {
       session.endSession();

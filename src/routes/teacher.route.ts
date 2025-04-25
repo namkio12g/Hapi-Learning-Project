@@ -1,13 +1,13 @@
 import CustomJoi from "../utility/customJoi";
 import { JoiSchemas } from "../utility/JoiSchema";
-import StudentController from "../controller/student.controller";
+import TeacherController from "../controller/teacher.controller";
 import { Server } from "@hapi/hapi";
 import { GenderTypes } from "../entities/person.entity";
-const StudentRoutes = (server: Server) => {
+const TeacherRoutes = (server: Server) => {
   server.route([
     {
       method: "get",
-      path: "/student/{id}",
+      path: "/teacher/{id}",
       options: {
         tags: ["api"],
         validate: {
@@ -17,15 +17,15 @@ const StudentRoutes = (server: Server) => {
         },
         response: {
           status: {
-            200: JoiSchemas.StudentSchema,
+            200: JoiSchemas.TeacherSchema,
           },
         },
-        handler: StudentController.getOneStudent,
+        handler: TeacherController.getOneTeacher,
       },
     },
     {
       method: "get",
-      path: "/student/get-students",
+      path: "/teacher/get-teachers",
       options: {
         tags: ["api"],
         validate: {
@@ -50,15 +50,15 @@ const StudentRoutes = (server: Server) => {
         },
         response: {
           status: {
-            200: CustomJoi.array().items(JoiSchemas.StudentSchema),
+            200: CustomJoi.array().items(JoiSchemas.TeacherSchema),
           },
         },
-        handler: StudentController.getStudents,
+        handler: TeacherController.getTeachers,
       },
     },
     {
       method: "post",
-      path: "/student/create-student",
+      path: "/teacher/create-teacher",
       options: {
         tags: ["api"],
         validate: {
@@ -78,20 +78,19 @@ const StudentRoutes = (server: Server) => {
               .valid(...Object.values(GenderTypes))
               .example("male"),
             age: CustomJoi.number().required().min(0).example(20),
-            wallet: CustomJoi.number().required().min(0).example(20000),
           }),
         },
         response: {
           status: {
-            200: JoiSchemas.StudentSchema,
+            200: JoiSchemas.TeacherSchema,
           },
         },
-        handler: StudentController.createNewStudent,
+        handler: TeacherController.createNewTeacher,
       },
     },
     {
       method: "patch",
-      path: "/student/update-student",
+      path: "/teacher/update-teacher",
       options: {
         tags: ["api"],
         validate: {
@@ -114,16 +113,16 @@ const StudentRoutes = (server: Server) => {
         },
         response: {
           status: {
-            200: JoiSchemas.StudentSchema,
+            200: JoiSchemas.TeacherSchema,
           },
         },
-        handler: StudentController.updateStudent,
+        handler: TeacherController.updateTeacher,
       },
     },
 
     {
       method: "delete",
-      path: "/student/delete/{id}",
+      path: "/teacher/delete/{id}",
       options: {
         tags: ["api"],
         validate: {
@@ -132,26 +131,24 @@ const StudentRoutes = (server: Server) => {
           }),
         },
         response: {},
-        handler: StudentController.deleteStudentById,
+        handler: TeacherController.deleteTeacherById,
       },
     },
     {
       method: "post",
-      path: "/student/enroll",
+      path: "/teacher/update-teaching-course/{id}",
       options: {
         tags: ["api"],
         validate: {
           payload: CustomJoi.object({
-            studentId: JoiSchemas.ObjectIdInput.required(),
-            voucherId: JoiSchemas.ObjectIdInput,
+            teacherId: JoiSchemas.ObjectIdInput.required(),
             courseId: JoiSchemas.ObjectIdInput.required(),
           }),
-          failAction: "log",
         },
         response: {},
-        handler: StudentController.updateLearningCourse,
+        handler: TeacherController.updateTeachingCourse,
       },
     },
   ]);
 };
-export default StudentRoutes;
+export default TeacherRoutes;

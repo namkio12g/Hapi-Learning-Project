@@ -4,11 +4,15 @@ import { CourseModel, ICourseDocument } from "../models/course.model";
 const LIMIT_NUMBER = 6;
 export const CourseService = {
   async createCourse(courseInfo: ICourseDocument) {
+    if (courseInfo.timeEnd && new Date(courseInfo.timeEnd) < new Date()) {
+      throw Boom.badRequest("The end time cannot be before the start time");
+    }
     try {
       const newCourse = new CourseModel(courseInfo);
       return await newCourse.save();
     } catch (error) {
-      console.log(error);
+      console.log("error at creating course", error);
+      throw Boom.badRequest("Had an error at creating course");
     }
   },
 
@@ -21,6 +25,17 @@ export const CourseService = {
   },
 
   async updateCourse(courseId: string, courseInfo: Partial<ICourseDocument>) {
+    const courseObj = await CourseModel.findById(courseId);
+    if (!courseObj) throw Boom.notFound("course not found");
+    const timeStart = courseObj.timeStart;
+    console.log(courseInfo);
+    if (
+      courseInfo.timeEnd &&
+      timeStart &&
+      new Date(courseInfo.timeEnd) < timeStart
+    )
+      throw Boom.badRequest("The end time cannot be before the start time");
+
     try {
       const updatedCourseObj = await CourseModel.findByIdAndUpdate(
         courseId,
@@ -35,23 +50,25 @@ export const CourseService = {
   },
 
   async getCourseById(courseId: string) {
-    try {
-      const res = await CourseModel.findOne({ _id: courseId }).populate(
-        "teacher",
-        "_id name"
-      );
-      if (!res) throw Boom.notFound("Course not found");
-      return res;
-    } catch (error) {
-      throw Boom.badRequest("Had an error at finding course");
-    }
+    const res = await CourseModel.findOne({ _id: courseId }).populate(
+      "teacher",
+      "_id name"
+    );
+    if (!res) throw Boom.notFound("Course not found");
+    return res;
   },
 
   async getCourses(page: number, courseQuery: Partial<ICourseDocument>) {
     try {
       let query: any = {
-        name: { $regex: courseQuery.name, $options: "i" },
-        level: courseQuery.level,
+        name: {
+          $regex: courseQuery.name ? courseQuery.name : "",
+          $options: "i",
+        },
+        level: {
+          $regex: courseQuery.level ? courseQuery.level : "",
+          $options: "i",
+        },
       };
       if (courseQuery.timeStart)
         query.timeStart = { $gte: new Date(courseQuery.timeStart) };
