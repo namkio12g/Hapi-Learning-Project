@@ -1,9 +1,6 @@
 import { Types } from "mongoose";
-export interface IStudent {
-  name: string;
-  age: number;
-  grade: number;
-  address: string;
-  gender: string;
-  classes: Types.ObjectId[];
+import { IPerson } from "./person.entity";
+export interface IStudent extends IPerson {
+  learningCourse?: Types.ObjectId;
+  wallet: number;
 }
