@@ -12,6 +12,10 @@ import { IEnrollmentInfo } from "../entities/types/enrollment.types";
 const LIMIT_NUMBER = 6;
 export const StudentService = {
   async createStudent(studentInfo: IStudentDocument) {
+    const studentObj = await StudentModel.findOne({
+      $or: [{ email: studentInfo.email }, { phone: studentInfo.phone }],
+    });
+    if (studentObj) throw Boom.badRequest("Email or Phone have been used");
     try {
       const newStudent = new StudentModel(studentInfo);
       return await newStudent.save();
@@ -32,6 +36,13 @@ export const StudentService = {
     studentId: string,
     studentInfo: Partial<IStudentDocument>
   ) {
+    if (studentInfo.email || studentInfo.phone) {
+      const studentObj = await StudentModel.findOne({
+        $or: [{ email: studentInfo.email }, { phone: studentInfo.phone }],
+      });
+
+      if (studentObj) throw Boom.badRequest("Email or Phone have been used");
+    }
     try {
       const updatedStudentObj = await StudentModel.findByIdAndUpdate(
         studentId,
@@ -65,6 +76,7 @@ export const StudentService = {
         phone: { $regex: studentQuery.phone, $options: "i" },
         address: { $regex: studentQuery.address, $options: "i" },
         gender: { $regex: studentQuery.gender, $options: "i" },
+        email: { $regex: studentQuery.email, $options: "i" },
       };
       if (studentQuery.age) query.age = { $lte: studentQuery.age };
       const studentArr = await StudentModel.find(query)
@@ -87,15 +99,28 @@ export const StudentService = {
       })
         .populate<{ eventApplied: IEventDocument }>("eventApplied")
         .exec();
-      if (!voucherObj) Boom.notFound("The voucher is not found or run out");
+      if (!voucherObj)
+        throw Boom.notFound("The voucher is not found or run out");
 
       eventObj = voucherObj?.eventApplied;
+      if (
+        !eventObj ||
+        eventObj.active !== "active" ||
+        new Date(eventObj.timeEnd) < new Date()
+      )
+        throw Boom.notFound("The event of the is not found or run out");
+      if (
+        !eventObj.coursesEligible?.includes(
+          new mongoose.Types.ObjectId(enrollmentInfo.courseId)
+        )
+      )
+        throw Boom.notFound("The event of the voucher is for the course");
     }
     if (!studentObj || !courseObj)
       throw Boom.notFound("The student or course not found");
-    if (!studentObj.learningCourse)
+    if (studentObj.learningCourse)
       throw Boom.badRequest("The student have already learn a course");
-    if (courseObj.timeEnd > new Date())
+    if (new Date(courseObj.timeEnd) < new Date())
       throw Boom.badRequest("The course was expired");
 
     let cost: number = courseObj.price;
@@ -111,7 +136,7 @@ export const StudentService = {
       const updateStudentObj = await StudentModel.findByIdAndUpdate(
         studentObj._id,
         {
-          $set: { learningCourseCourse: courseObj._id },
+          $set: { learningCourse: courseObj._id },
           $inc: { wallet: -1 * cost },
         },
         { session, new: true }
@@ -122,14 +147,18 @@ export const StudentService = {
         { session }
       );
       if (eventObj?.discount)
-        await VoucherModel.findByIdAndUpdate(enrollmentInfo.voucherId, {
-          $inc: { quantity: -1 },
-        });
+        await VoucherModel.findByIdAndUpdate(
+          enrollmentInfo.voucherId,
+          {
+            $inc: { quantity: -1 },
+          },
+          { session }
+        );
       await session.commitTransaction();
       return updateStudentObj;
     } catch (error) {
       await session.abortTransaction();
-      throw Boom.badRequest("Had an error updating student");
+      throw Boom.badRequest("Had an error enrolling the course for student");
     } finally {
       session.endSession();
     }

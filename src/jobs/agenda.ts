@@ -15,6 +15,7 @@ agenda.define("checking mongoDB", async () => {
     console.error("DB connection checking err", error);
   }
 });
+
 agenda.on("ready", async () => {
   await agenda.start();
   await agenda.every("1 minute", "checking mongoDB");

@@ -14,4 +14,4 @@ const VoucherSchema: mongoose.Schema<IVoucherDocument> =
   });
 
 export const VoucherModel: mongoose.Model<IVoucherDocument> =
-  mongoose.model<IVoucherDocument>("Voucher", VoucherSchema);
+  mongoose.model<IVoucherDocument>("voucher", VoucherSchema);

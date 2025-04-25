@@ -1,5 +1,8 @@
 import { Types } from "mongoose";
-
+export enum EventStatuses {
+  Active = "active",
+  Inactive = "inactive",
+}
 export interface IEvent {
   name: string;
   discount: Float16Array;
@@ -8,4 +11,5 @@ export interface IEvent {
   timeEnd: Date;
   maxVoucherQuantity: number;
   voucher?: Types.ObjectId;
+  active: string;
 }

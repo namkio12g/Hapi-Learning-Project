@@ -1,8 +1,9 @@
-import { Request } from "@hapi/hapi";
+import { Request, ResponseToolkit } from "@hapi/hapi";
 import { EventService } from "../services/event.service";
 import { IEventDocument } from "../models/event.model";
+import { IAddingCourseToEvent } from "../entities/types/addingCourseToEvent.types";
 const EventController = {
-  createNewEvent(request: Request) {
+  createNewEvent(request: Request, h: ResponseToolkit) {
     try {
       const eventInfo = request.payload as IEventDocument;
       return EventService.createEvent(eventInfo);
@@ -11,15 +12,16 @@ const EventController = {
     }
   },
 
-  getOneEvent(eventId: string) {
+  getOneEvent(request: Request, h: ResponseToolkit) {
     try {
+      const eventId = request.params.id;
       return EventService.getEventById(eventId);
     } catch (error) {
       console.log(error);
     }
   },
 
-  getEvents(request: Request) {
+  getEvents(request: Request, h: ResponseToolkit) {
     try {
       const eventInfo = request.query as Partial<IEventDocument>;
       const page = request.query.page as number;
@@ -29,27 +31,31 @@ const EventController = {
     }
   },
 
-  updateEvent(request: Request) {
+  addCoursesIntoEvent(request: Request, h: ResponseToolkit) {
     try {
+      const addingCoursesInfo = request.payload as IAddingCourseToEvent;
+      return EventService.addCourseToEvent(
+        addingCoursesInfo.eventId,
+        addingCoursesInfo.coursesIdArray
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  },
+  updateEvent(request: Request, h: ResponseToolkit) {
+    try {
+      const eventId = request.query.id;
       const eventInfo = request.payload as IEventDocument;
-      const eventId = request.params._id;
       return EventService.updateEvent(eventId, eventInfo);
     } catch (error) {
       console.log(error);
     }
   },
 
-  deleteEventById(eventId: string) {
+  deleteEventById(request: Request, h: ResponseToolkit) {
     try {
+      const eventId = request.params.id;
       return EventService.deleteEventById(eventId);
-    } catch (error) {
-      console.log(error);
-    }
-  },
-
-  updateTeachingCourse(eventId: string) {
-    try {
-      return EventService.generateNewVoucher(eventId);
     } catch (error) {
       console.log(error);
     }
