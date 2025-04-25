@@ -1,12 +1,18 @@
+import Boom from "@hapi/boom";
+import {
+  StudentModel,
+  IStudentDocument,
+  CourseModel,
+  VoucherModel,
+  IEventDocument,
+} from "../models/index";
 import mongoose from "mongoose";
-import { ClassModel } from "../models/class.model";
-import { StudentModel, IStudentDocument } from "../models/student.model";
-import { IAjustClass } from "../entities/adjustClass.entity";
-import { IStudent } from "../entities/student.entity";
+import { IEnrollmentInfo } from "../entities/types/enrollment.types";
+
+const LIMIT_NUMBER = 6;
 export const StudentService = {
   async createStudent(studentInfo: IStudentDocument) {
     try {
-      console.log(studentInfo);
       const newStudent = new StudentModel(studentInfo);
       return await newStudent.save();
     } catch (error) {
@@ -18,149 +24,114 @@ export const StudentService = {
     try {
       return await StudentModel.deleteOne({ _id: studentId });
     } catch (error) {
-      console.log(error);
+      throw Boom.badRequest("Had an error at deleting student");
     }
   },
 
-  async deleteStudents(studentInfo: IStudent) {
+  async updateStudent(
+    studentId: string,
+    studentInfo: Partial<IStudentDocument>
+  ) {
     try {
-      let query: any = { name: studentInfo.name };
-
-      if (studentInfo.grade) {
-        query.grade = studentInfo.grade;
-      }
-      if (studentInfo.age) {
-        query.age = studentInfo.age;
-      }
-      if (studentInfo.gender) {
-        query.gender = studentInfo.gender;
-      }
-      return await StudentModel.deleteMany(studentInfo);
+      const updatedStudentObj = await StudentModel.findByIdAndUpdate(
+        studentId,
+        { $set: studentInfo },
+        { new: true, runValidators: true }
+      );
+      if (!updatedStudentObj) throw Boom.notFound("Student not found");
+      return updatedStudentObj;
     } catch (error) {
-      console.log(error);
-    }
-  },
-
-  async updateStudent(studentInfo: IStudentDocument) {
-    try {
-      const studentObj = await StudentModel.findById(studentInfo._id);
-      if (!studentObj) throw new Error("cant find the student");
-
-      studentObj.gender = studentInfo.gender
-        ? studentInfo.gender
-        : studentObj.gender;
-
-      studentObj.name = studentInfo.name ? studentInfo.name : studentObj.name;
-
-      studentObj.age = studentInfo.age ? studentInfo.age : studentObj.age;
-
-      studentObj.grade = studentInfo.grade
-        ? studentInfo.grade
-        : studentObj.grade;
-
-      studentObj.address = studentInfo.address
-        ? studentInfo.address
-        : studentObj.address;
-
-      return await studentObj.save();
-    } catch (error) {
-      console.log(error);
+      throw Boom.badRequest("Had an error at updating student");
     }
   },
 
   async getStudentById(studentId: string) {
     try {
-      return await StudentModel.findOne({ _id: studentId });
+      const res = await StudentModel.findOne({ _id: studentId }).populate(
+        "learningCourse",
+        "_id name"
+      );
+      if (!res) throw Boom.notFound("Student not found");
+      return res;
     } catch (error) {
-      console.log(error);
+      throw Boom.badRequest("Had an error at finding student");
     }
   },
 
-  async getStudents(studentInfo: IStudentDocument) {
+  async getStudents(page: number, studentQuery: Partial<IStudentDocument>) {
     try {
-      let query: any = {};
-      if (studentInfo.age) query.age = studentInfo.age;
-
-      if (studentInfo.grade) query.grade = studentInfo.grade;
-
-      if (studentInfo.name)
-        query.name = { $regex: studentInfo.name, $options: "i" };
-      if (studentInfo.address)
-        query.address = { $regex: studentInfo.address, $options: "i" };
-      if (studentInfo.gender) query.gender = studentInfo.gender;
-      const studentArr = await StudentModel.find(query);
+      let query: any = {
+        name: { $regex: studentQuery.name, $options: "i" },
+        phone: { $regex: studentQuery.phone, $options: "i" },
+        address: { $regex: studentQuery.address, $options: "i" },
+        gender: { $regex: studentQuery.gender, $options: "i" },
+      };
+      if (studentQuery.age) query.age = { $lte: studentQuery.age };
+      const studentArr = await StudentModel.find(query)
+        .skip((page - 1) * LIMIT_NUMBER)
+        .limit(LIMIT_NUMBER);
       return studentArr;
     } catch (error) {
-      console.log(error);
+      throw Boom.badRequest("Had an error at getting students");
     }
   },
 
-  async addClass(adjustClassInfo: IAjustClass) {
-    try {
-      const studentObj = await StudentModel.findById(adjustClassInfo.studentId);
-      if (!studentObj) throw new Error("cant find the student");
-
-      const classObj = await ClassModel.findById(adjustClassInfo.classId);
-      if (!classObj) throw new Error("cant find the student");
-
-      const alreadyExist = studentObj.classes.some(
-        (c: mongoose.Types.ObjectId) =>
-          c.equals(classObj._id as mongoose.Types.ObjectId)
-      );
-      if (alreadyExist) {
-        throw new Error();
-      }
-      studentObj.classes.push(classObj._id as mongoose.Types.ObjectId);
-      const res = await studentObj.save();
-      if (res) {
-        classObj.studentCounts += 1;
-        await classObj.save();
-      }
-      return res;
-    } catch (error) {
-      console.log(error);
-    }
-  },
-
-  async removeClass(adjustClassInfo: IAjustClass) {
-    try {
-      const studentObj = await StudentModel.findById(adjustClassInfo.studentId);
-      if (!studentObj) throw new Error("cant find the student");
-
-      const classObj = await ClassModel.findById(adjustClassInfo.classId);
-      if (!classObj) throw new Error("cant find the class");
-
-      const alreadyExist = studentObj.classes.some(
-        (c: mongoose.Types.ObjectId) =>
-          c.equals(classObj._id as mongoose.Types.ObjectId)
-      );
-      if (!alreadyExist) {
-        throw new Error();
-      }
-      studentObj.classes = studentObj.classes.filter(
-        (c: mongoose.Types.ObjectId) => !c.equals(adjustClassInfo.classId)
-      );
-
-      const res = await studentObj.save();
-      if (res) {
-        classObj.studentCounts -= 1;
-        await classObj.save();
-      }
-      return res;
-    } catch (error) {
-      console.log(error);
-    }
-  },
-  async getClasses(studentId: string) {
-    try {
-      const studentObj = await StudentModel.findById(studentId);
-      if (!studentObj) return { message: "cant find the student" };
-      const students = StudentModel.findById(studentId)
-        .populate("classes")
+  async enrollCourse(enrollmentInfo: IEnrollmentInfo) {
+    const studentObj = await StudentModel.findById(enrollmentInfo.studentId);
+    const courseObj = await CourseModel.findById(enrollmentInfo.courseId);
+    let eventObj: IEventDocument | undefined = undefined;
+    if (enrollmentInfo.voucherId) {
+      const voucherObj = await VoucherModel.findOne({
+        _id: enrollmentInfo.voucherId,
+        quantity: { $gte: 0 },
+      })
+        .populate<{ eventApplied: IEventDocument }>("eventApplied")
         .exec();
-      return students;
+      if (!voucherObj) Boom.notFound("The voucher is not found or run out");
+
+      eventObj = voucherObj?.eventApplied;
+    }
+    if (!studentObj || !courseObj)
+      throw Boom.notFound("The student or course not found");
+    if (!studentObj.learningCourse)
+      throw Boom.badRequest("The student have already learn a course");
+    if (courseObj.timeEnd > new Date())
+      throw Boom.badRequest("The course was expired");
+
+    let cost: number = courseObj.price;
+    if (eventObj?.discount) {
+      const discount = parseFloat(eventObj.discount.toString() ?? "0");
+      cost = cost * (1 - discount / 100);
+    }
+    if (cost > studentObj?.wallet)
+      throw Boom.badRequest("The student wallet was not enough for the course");
+    const session = await mongoose.startSession();
+    try {
+      session.startTransaction();
+      const updateStudentObj = await StudentModel.findByIdAndUpdate(
+        studentObj._id,
+        {
+          $set: { learningCourseCourse: courseObj._id },
+          $inc: { wallet: -1 * cost },
+        },
+        { session, new: true }
+      );
+      await CourseModel.findByIdAndUpdate(
+        courseObj._id,
+        { $set: { studentsCount: +1 } },
+        { session }
+      );
+      if (eventObj?.discount)
+        await VoucherModel.findByIdAndUpdate(enrollmentInfo.voucherId, {
+          $inc: { quantity: -1 },
+        });
+      await session.commitTransaction();
+      return updateStudentObj;
     } catch (error) {
-      console.log(error);
+      await session.abortTransaction();
+      throw Boom.badRequest("Had an error updating student");
+    } finally {
+      session.endSession();
     }
   },
 };

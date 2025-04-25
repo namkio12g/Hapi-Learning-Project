@@ -1,14 +1,8 @@
 import { Request } from "@hapi/hapi";
-import { IStudentDocument } from "../models/student.model";
 import { StudentService } from "../services/student.service";
-import { IAjustClass } from "../entities/adjustClass.entity";
-import { IStudent } from "../entities/student.entity";
-
+import { IStudentDocument } from "../models/student.model";
+import { IEnrollmentInfo } from "../entities/types/enrollment.types";
 const StudentController = {
-  geStudents(request: Request) {
-    const studentInfo = request.query as IStudentDocument;
-    return StudentService.getStudents(studentInfo);
-  },
   createNewStudent(request: Request) {
     try {
       const studentInfo = request.payload as IStudentDocument;
@@ -26,10 +20,21 @@ const StudentController = {
     }
   },
 
+  getStudents(request: Request) {
+    try {
+      const studentInfo = request.query as IStudentDocument;
+      const page = request.query.page as number;
+      return StudentService.getStudents(page, studentInfo);
+    } catch (error) {
+      console.log(error);
+    }
+  },
+
   updateStudent(request: Request) {
     try {
       const studentInfo = request.payload as IStudentDocument;
-      return StudentService.updateStudent(studentInfo);
+      const studentId = request.params._id;
+      return StudentService.updateStudent(studentId, studentInfo);
     } catch (error) {
       console.log(error);
     }
@@ -43,35 +48,10 @@ const StudentController = {
     }
   },
 
-  deleteStudents(request: Request) {
+  updateTeachingCourse(request: Request) {
     try {
-      const studentInfo = request.payload as IStudent;
-      return StudentService.deleteStudents(studentInfo);
-    } catch (error) {
-      console.log(error);
-    }
-  },
-
-  addClass(request: Request) {
-    try {
-      const adjustClassInfo = request.payload as IAjustClass;
-      return StudentService.addClass(adjustClassInfo);
-    } catch (error) {
-      console.log(error);
-    }
-  },
-
-  removeClass(request: Request) {
-    try {
-      const adjustClassInfo = request.payload as IAjustClass;
-      return StudentService.removeClass(adjustClassInfo);
-    } catch (error) {
-      console.log(error);
-    }
-  },
-  getClasses(studentId: string) {
-    try {
-      return StudentService.getClasses(studentId);
+      const info = request.payload as IEnrollmentInfo;
+      return StudentService.enrollCourse(info);
     } catch (error) {
       console.log(error);
     }
