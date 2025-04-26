@@ -3,6 +3,7 @@ import * as Hapi from "@hapi/hapi";
 import HapiSwagger from "hapi-swagger";
 import Inert from "@hapi/inert";
 import Vision from "@hapi/vision";
+import "./queues/worker.queue";
 import {
   CourseRoutes,
   EventRoutes,
@@ -12,7 +13,10 @@ import {
 } from "./routes/index";
 import { DbConnection } from "./config/dbConnect";
 import Boom from "@hapi/boom";
-import { agenda } from "./jobs/agenda";
+import { jwtAuthPlugin } from "./middlewares/jwtStrategy";
+import { SeverityLevel } from "mongodb";
+import AuthRoutes from "./routes/auth.route";
+// import { agenda } from "./jobs/agenda";
 // import the server
 
 const start = async () => {
@@ -25,6 +29,14 @@ const start = async () => {
     info: {
       title: "Test API Documentation",
     },
+    securityDefinitions: {
+      jwt: {
+        type: "apiKey",
+        name: "Authorization",
+        in: "header",
+      },
+    },
+    security: [{ jwt: [] }],
   };
 
   const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
@@ -42,8 +54,9 @@ const start = async () => {
 
   try {
     await server.register(plugins);
+    await server.register(jwtAuthPlugin);
   } catch (error) {
-    console.log("swagger error");
+    console.log(error);
   }
 
   //---------------- db connection----------------//
@@ -86,8 +99,10 @@ const start = async () => {
 
     return h.continue;
   });
+  console.log(server.auth);
   //---------------- Routing----------------//
   //   StudentRoutes(server);
+  AuthRoutes(server);
   CourseRoutes(server);
   VoucherRoutes(server);
   StudentRoutes(server);
@@ -96,6 +111,7 @@ const start = async () => {
   //---------------- Other----------------//
 
   await server.start();
+
   console.log("server run on ", server.info.uri);
 };
 start().catch((err) => {

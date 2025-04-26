@@ -1,8 +1,9 @@
-import CustomJoi from "../utility/customJoi";
-import { JoiSchemas } from "../utility/JoiSchema";
+import CustomJoi from "../untils/customJoi";
+import { JoiSchemas } from "../untils/JoiSchema";
 import CourseController from "../controller/course.controller";
 import { CourseLevel } from "../entities/course.entity";
 import { Server } from "@hapi/hapi";
+import { requireRole } from "../middlewares/authorization";
 const CourseRoutes = (server: Server) => {
   server.route([
     {
@@ -10,6 +11,7 @@ const CourseRoutes = (server: Server) => {
       path: "/course/{id}",
       options: {
         tags: ["api"],
+        // auth: false,
         validate: {
           params: CustomJoi.object({
             id: JoiSchemas.ObjectIdInput.required(),
@@ -20,6 +22,7 @@ const CourseRoutes = (server: Server) => {
             200: JoiSchemas.CourseSchema,
           },
         },
+        pre: [requireRole("student")],
         handler: CourseController.getOneCourse,
       },
     },
@@ -28,6 +31,7 @@ const CourseRoutes = (server: Server) => {
       path: "/course/get-coursees",
       options: {
         tags: ["api"],
+        auth: false,
         validate: {
           query: CustomJoi.object({
             name: CustomJoi.string().example("Summ"),
@@ -69,6 +73,7 @@ const CourseRoutes = (server: Server) => {
             200: JoiSchemas.CourseSchema,
           },
         },
+        pre: [requireRole("teacher")],
         handler: CourseController.createNewCourse,
       },
     },
@@ -96,6 +101,7 @@ const CourseRoutes = (server: Server) => {
             200: JoiSchemas.CourseSchema,
           },
         },
+        pre: [requireRole("teacher")],
         handler: CourseController.updateCourse,
       },
     },
@@ -111,6 +117,7 @@ const CourseRoutes = (server: Server) => {
           }),
         },
         response: {},
+        pre: [requireRole("teacher")],
         handler: CourseController.deleteCourseById,
       },
     },

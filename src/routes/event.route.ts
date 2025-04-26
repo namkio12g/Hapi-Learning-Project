@@ -1,5 +1,5 @@
-import CustomJoi from "../utility/customJoi";
-import { JoiSchemas } from "../utility/JoiSchema";
+import CustomJoi from "../untils/customJoi";
+import { JoiSchemas } from "../untils/JoiSchema";
 import EventController from "../controller/event.controller";
 import { EventStatuses } from "../entities/event.entity";
 import { Server } from "@hapi/hapi";
@@ -145,6 +145,25 @@ const EventRoutes = (server: Server) => {
         },
         response: {},
         handler: EventController.addCoursesIntoEvent,
+      },
+    },
+    {
+      method: "post",
+      path: "/event/request-new-voucher",
+      options: {
+        tags: ["api"],
+        validate: {
+          payload: CustomJoi.object({
+            eventId: JoiSchemas.ObjectIdInput.required(),
+            email: CustomJoi.string().email().required(),
+          }),
+        },
+        response: {
+          status: {
+            200: JoiSchemas.VoucherSchema,
+          },
+        },
+        handler: EventController.requestNewVoucher,
       },
     },
   ]);

@@ -52,6 +52,7 @@ export const JoiSchemas = {
   VoucherSchema: CustomJoi.object({
     _id: CustomJoi.objectId().required().example("680b05fce8fd3b66a7c0d7e1"),
     code: CustomJoi.string().example("asdf9s9f8"),
+    isUsed: CustomJoi.boolean().example(false),
   })
     .label("Course Object")
     .unknown(true),

@@ -1,5 +1,5 @@
-import CustomJoi from "../utility/customJoi";
-import { JoiSchemas } from "../utility/JoiSchema";
+import CustomJoi from "../untils/customJoi";
+import { JoiSchemas } from "../untils/JoiSchema";
 import VoucherController from "../controller/voucher.controller";
 import { Server } from "@hapi/hapi";
 const VoucherRoutes = (server: Server) => {
@@ -20,25 +20,6 @@ const VoucherRoutes = (server: Server) => {
           },
         },
         handler: VoucherController.getOneVoucher,
-      },
-    },
-    {
-      method: "post",
-      path: "/voucher/update-voucher/{id}",
-      options: {
-        tags: ["api"],
-        validate: {
-          payload: CustomJoi.object({
-            voucherId: JoiSchemas.ObjectIdInput.required(),
-            quantity: CustomJoi.number().required().min(0),
-          }),
-        },
-        response: {
-          status: {
-            200: JoiSchemas.VoucherSchema,
-          },
-        },
-        handler: VoucherController.updateVoucher,
       },
     },
   ]);

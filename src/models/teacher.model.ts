@@ -10,6 +10,7 @@ const TeacherSchema: mongoose.Schema<ITeacherDocument> =
     address: { type: String, required: true },
     gender: { type: String, required: true, enum: Object.values(GenderTypes) },
     phone: { type: String, required: true },
+    password: { type: String, required: true },
     teachingCourse: { type: Types.ObjectId, ref: "course", default: null },
   });
 

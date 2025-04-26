@@ -10,7 +10,7 @@ const VoucherSchema: mongoose.Schema<IVoucherDocument> =
   new mongoose.Schema<IVoucherDocument>({
     eventApplied: { type: Types.ObjectId, ref: "event" },
     code: { type: String },
-    quantity: { type: Number },
+    isUsed: { type: Boolean, default: false },
   });
 
 export const VoucherModel: mongoose.Model<IVoucherDocument> =

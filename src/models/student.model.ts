@@ -9,6 +9,7 @@ const StudentSchema = new mongoose.Schema({
   address: { type: String, default: "" },
   gender: { type: String, required: true, enum: Object.values(GenderTypes) },
   phone: { type: String, required: true },
+  password: { type: String, required: true },
   learningCourse: { type: Types.ObjectId, ref: "course", default: null },
   wallet: { type: Number, default: 0 },
 });

@@ -2,6 +2,9 @@ import { Request, ResponseToolkit } from "@hapi/hapi";
 import { EventService } from "../services/event.service";
 import { IEventDocument } from "../models/event.model";
 import { IAddingCourseToEvent } from "../entities/types/addingCourseToEvent.types";
+import { IRequestNewVoucherInfo } from "../entities/types/RequestNewVoucherInfo.types";
+import { sendVoucherByEmailJob } from "../queues/master.queue";
+import { badRequest } from "@hapi/boom";
 const EventController = {
   createNewEvent(request: Request, h: ResponseToolkit) {
     try {
@@ -58,6 +61,16 @@ const EventController = {
       return EventService.deleteEventById(eventId);
     } catch (error) {
       console.log(error);
+    }
+  },
+  requestNewVoucher(request: Request, h: ResponseToolkit) {
+    try {
+      const voucherInfo = request.payload as IRequestNewVoucherInfo;
+      const voucher = EventService.requestNewVoucher(voucherInfo);
+      voucher.then((res) => sendVoucherByEmailJob(voucherInfo.email, res.code));
+      return voucher;
+    } catch (error) {
+      throw badRequest("Failed to request a new voucher");
     }
   },
 };

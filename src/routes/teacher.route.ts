@@ -1,5 +1,5 @@
-import CustomJoi from "../utility/customJoi";
-import { JoiSchemas } from "../utility/JoiSchema";
+import CustomJoi from "../untils/customJoi";
+import { JoiSchemas } from "../untils/JoiSchema";
 import TeacherController from "../controller/teacher.controller";
 import { Server } from "@hapi/hapi";
 import { GenderTypes } from "../entities/person.entity";
@@ -72,6 +72,7 @@ const TeacherRoutes = (server: Server) => {
               .required()
               .pattern(/^0\d{9}$/)
               .example("0123456789"),
+            password: CustomJoi.string().required().example("123456789"),
             address: CustomJoi.string().required().example("Ho chi minh"),
             gender: CustomJoi.string()
               .required()
