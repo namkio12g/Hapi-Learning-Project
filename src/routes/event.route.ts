@@ -3,6 +3,7 @@ import { JoiSchemas } from "../untils/JoiSchema";
 import EventController from "../controller/event.controller";
 import { EventStatuses } from "../entities/event.entity";
 import { Server } from "@hapi/hapi";
+import { requireRole } from "../middlewares/authorization";
 const EventRoutes = (server: Server) => {
   server.route([
     {
@@ -10,6 +11,7 @@ const EventRoutes = (server: Server) => {
       path: "/event/{id}",
       options: {
         tags: ["api"],
+        auth: false,
         validate: {
           params: CustomJoi.object({
             id: JoiSchemas.ObjectIdInput.required(),
@@ -28,6 +30,7 @@ const EventRoutes = (server: Server) => {
       path: "/event/get-events",
       options: {
         tags: ["api"],
+        auth: false,
         validate: {
           query: CustomJoi.object({
             name: CustomJoi.string().example("Summer event").default(""),
@@ -84,6 +87,7 @@ const EventRoutes = (server: Server) => {
             200: JoiSchemas.EventSchema,
           },
         },
+        pre: [requireRole("teacher")],
         handler: EventController.createNewEvent,
       },
     },
@@ -129,6 +133,7 @@ const EventRoutes = (server: Server) => {
           }),
         },
         response: {},
+        pre: [requireRole("teacher")],
         handler: EventController.deleteEventById,
       },
     },
@@ -144,6 +149,7 @@ const EventRoutes = (server: Server) => {
           }),
         },
         response: {},
+        pre: [requireRole("teacher")],
         handler: EventController.addCoursesIntoEvent,
       },
     },
@@ -163,7 +169,77 @@ const EventRoutes = (server: Server) => {
             200: JoiSchemas.VoucherSchema,
           },
         },
+        pre: [requireRole("student")],
         handler: EventController.requestNewVoucher,
+      },
+    },
+    {
+      method: "post",
+      path: "/event/{id}/editable/release",
+      options: {
+        tags: ["api"],
+        validate: {
+          params: CustomJoi.object({
+            id: JoiSchemas.ObjectIdInput.required(),
+          }),
+        },
+        response: {
+          status: {
+            200: CustomJoi.object({
+              message: CustomJoi.string().example(
+                "releasing the edit event successfully"
+              ),
+            }),
+          },
+        },
+        pre: [requireRole("teacher")],
+        handler: EventController.releaseEditEvent,
+      },
+    },
+    {
+      method: "post",
+      path: "/event/{id}/editable/me",
+      options: {
+        tags: ["api"],
+        validate: {
+          params: CustomJoi.object({
+            id: JoiSchemas.ObjectIdInput.required(),
+          }),
+        },
+        response: {
+          status: {
+            200: CustomJoi.object({
+              message: CustomJoi.string().example(
+                "You are the owner of this event"
+              ),
+            }),
+          },
+        },
+        pre: [requireRole("teacher")],
+        handler: EventController.requestEditEvent,
+      },
+    },
+    {
+      method: "post",
+      path: "/event/{id}/editable/maintain",
+      options: {
+        tags: ["api"],
+        validate: {
+          params: CustomJoi.object({
+            id: JoiSchemas.ObjectIdInput.required(),
+          }),
+        },
+        response: {
+          status: {
+            200: CustomJoi.object({
+              message: CustomJoi.string().example(
+                "maintaining the edit event successfully"
+              ),
+            }),
+          },
+        },
+        pre: [requireRole("teacher")],
+        handler: EventController.maintainEditEvent,
       },
     },
   ]);

@@ -2,6 +2,7 @@ import { Request, ResponseToolkit } from "@hapi/hapi";
 import { StudentService } from "../services/student.service";
 import { IStudentDocument } from "../models/student.model";
 import { IEnrollmentInfo } from "../entities/types/enrollment.types";
+import { unauthorized } from "@hapi/boom";
 const StudentController = {
   createNewStudent(request: Request, h: ResponseToolkit) {
     try {
@@ -33,11 +34,16 @@ const StudentController = {
 
   updateStudent(request: Request, h: ResponseToolkit) {
     try {
+      const studentSession = request.auth.credentials?.user as any;
       const studentInfo = request.payload as IStudentDocument;
       const studentId = request.query.id;
+      if (!studentId || studentId !== studentSession.id)
+        throw unauthorized("You are not authorized to update this student");
+
       return StudentService.updateStudent(studentId, studentInfo);
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.log(error.message);
+      throw error;
     }
   },
 
@@ -52,10 +58,15 @@ const StudentController = {
 
   updateLearningCourse(request: Request, h: ResponseToolkit) {
     try {
+      const studentSession = request.auth.credentials?.user as any;
+
       const info = request.payload as IEnrollmentInfo;
+      if (!info.studentId || info.studentId !== studentSession.id)
+        throw unauthorized("You are not authorized to update this student");
       return StudentService.enrollCourse(info);
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.log(error.message);
+      throw error;
     }
   },
 };

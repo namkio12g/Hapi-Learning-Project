@@ -9,15 +9,7 @@ export const jwtAuthPlugin = {
 
     server.auth.strategy("jwt", "jwt", {
       keys: "grizzly-bears",
-      verify: {
-        aud: false,
-        iss: false,
-        sub: false,
-        nbf: true,
-        exp: true,
-        maxAgeSec: 14400, // optional: 4 hours
-        timeSkewSec: 15, // optional
-      },
+      verify: false,
       validate: (artifacts: any, request: Request, h: Hapi.ResponseToolkit) => {
         const payload = artifacts.decoded.payload; // Extract the payload from the JWT
         if (!payload || !payload.id || !payload.role) {

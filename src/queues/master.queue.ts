@@ -9,8 +9,40 @@ export const sendVoucherByEmailJob = async (
     voucherCode: voucherCode,
   });
 };
-export const addEditEventJob = async (eventId: string) => {
-  return checkingEditEventQueue.add("checkingEditEvent", {
-    eventId: eventId,
-  });
+
+export const requestEditEventJob = async (eventId: string, userId: string) => {
+  try {
+    const job = await checkingEditEventQueue.add("requestEditEvent", {
+      eventId: eventId,
+      userId: userId,
+    });
+    return job.finished();
+  } catch (error: any) {
+    console.log(error.message);
+    throw error;
+  }
+};
+export const releaseEditEventJob = async (eventId: string, userId: string) => {
+  try {
+    const job = await checkingEditEventQueue.add("releaseEditEvent", {
+      eventId: eventId,
+      userId: userId,
+    });
+    return job.finished();
+  } catch (error: any) {
+    console.log(error.message);
+    throw error;
+  }
+};
+export const maintainEditEventJob = async (eventId: string, userId: string) => {
+  try {
+    const job = await checkingEditEventQueue.add("maintainEditEvent", {
+      eventId: eventId,
+      userId: userId,
+    });
+    return job.finished();
+  } catch (error: any) {
+    console.log(error.message);
+    throw error;
+  }
 };

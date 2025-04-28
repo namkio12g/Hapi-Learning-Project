@@ -3,6 +3,7 @@ import { JoiSchemas } from "../untils/JoiSchema";
 import StudentController from "../controller/student.controller";
 import { Server } from "@hapi/hapi";
 import { GenderTypes } from "../entities/person.entity";
+import { requireRole } from "../middlewares/authorization";
 const StudentRoutes = (server: Server) => {
   server.route([
     {
@@ -10,6 +11,7 @@ const StudentRoutes = (server: Server) => {
       path: "/student/{id}",
       options: {
         tags: ["api"],
+        auth: false,
         validate: {
           params: CustomJoi.object({
             id: JoiSchemas.ObjectIdInput.required(),
@@ -28,6 +30,7 @@ const StudentRoutes = (server: Server) => {
       path: "/student/get-students",
       options: {
         tags: ["api"],
+        auth: false,
         validate: {
           query: CustomJoi.object({
             name: CustomJoi.string().example("Nguyen").default(""),
@@ -61,6 +64,7 @@ const StudentRoutes = (server: Server) => {
       path: "/student/create-student",
       options: {
         tags: ["api"],
+        auth: false,
         validate: {
           payload: CustomJoi.object({
             name: CustomJoi.string().required().example("Nguyen"),
@@ -118,6 +122,7 @@ const StudentRoutes = (server: Server) => {
             200: JoiSchemas.StudentSchema,
           },
         },
+        pre: [requireRole("student")],
         handler: StudentController.updateStudent,
       },
     },
@@ -133,6 +138,7 @@ const StudentRoutes = (server: Server) => {
           }),
         },
         response: {},
+        pre: [requireRole("student")],
         handler: StudentController.deleteStudentById,
       },
     },
@@ -150,6 +156,7 @@ const StudentRoutes = (server: Server) => {
           failAction: "log",
         },
         response: {},
+        pre: [requireRole("student")],
         handler: StudentController.updateLearningCourse,
       },
     },

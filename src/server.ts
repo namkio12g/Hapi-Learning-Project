@@ -16,7 +16,7 @@ import Boom from "@hapi/boom";
 import { jwtAuthPlugin } from "./middlewares/jwtStrategy";
 import { SeverityLevel } from "mongodb";
 import AuthRoutes from "./routes/auth.route";
-// import { agenda } from "./jobs/agenda";
+import { agenda } from "./jobs/agenda";
 // import the server
 
 const start = async () => {
@@ -37,6 +37,7 @@ const start = async () => {
       },
     },
     security: [{ jwt: [] }],
+    schemes: ["http", "https"],
   };
 
   const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
@@ -63,21 +64,21 @@ const start = async () => {
   DbConnection.connectDb().catch(console.error);
 
   //---------------- agenda scheduling----------------//
-  //   try {
-  //     agenda.on("ready", async () => {
-  //       await agenda.start();
-  //       console.log("agenda is started");
-  //     });
-  //   } catch (error) {
-  //     console.error("agenda error", error);
-  //   }
+  try {
+    agenda.on("ready", async () => {
+      await agenda.start();
+      console.log("agenda is started");
+    });
+  } catch (error) {
+    console.error("agenda error", error);
+  }
 
   //---------------- Handling Global error (using boom)----------------//
   server.ext("onPreResponse", (request, h) => {
-    const response = request.response;
+    const response = request.response as any;
 
     // Catch Boom errors
-    if (Boom.isBoom(response)) {
+    if (response.isBoom) {
       return h
         .response({
           statusCode: response.output.statusCode,
@@ -99,7 +100,6 @@ const start = async () => {
 
     return h.continue;
   });
-  console.log(server.auth);
   //---------------- Routing----------------//
   //   StudentRoutes(server);
   AuthRoutes(server);

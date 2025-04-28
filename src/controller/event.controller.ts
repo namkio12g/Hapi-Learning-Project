@@ -3,8 +3,13 @@ import { EventService } from "../services/event.service";
 import { IEventDocument } from "../models/event.model";
 import { IAddingCourseToEvent } from "../entities/types/addingCourseToEvent.types";
 import { IRequestNewVoucherInfo } from "../entities/types/RequestNewVoucherInfo.types";
-import { sendVoucherByEmailJob } from "../queues/master.queue";
-import { badRequest } from "@hapi/boom";
+import {
+  sendVoucherByEmailJob,
+  requestEditEventJob,
+  releaseEditEventJob,
+  maintainEditEventJob,
+} from "../queues/master.queue";
+import { badRequest, boomify } from "@hapi/boom";
 const EventController = {
   createNewEvent(request: Request, h: ResponseToolkit) {
     try {
@@ -63,14 +68,54 @@ const EventController = {
       console.log(error);
     }
   },
-  requestNewVoucher(request: Request, h: ResponseToolkit) {
+  async requestEditEvent(request: Request, h: ResponseToolkit) {
+    try {
+      const user = request.auth.credentials?.user as any;
+      const eventId = request.params.id;
+      const result = (await requestEditEventJob(
+        eventId,
+        user?.id as string
+      )) as any;
+      return h.response({ message: result.message }).code(result.status);
+    } catch (error: any) {
+      return h.response({ message: error.message }).code(409);
+    }
+  },
+  async maintainEditEvent(request: Request, h: ResponseToolkit) {
+    try {
+      const user = request.auth.credentials?.user as any;
+      const eventId = request.params.id;
+      const result = (await maintainEditEventJob(
+        eventId,
+        user?.id as string
+      )) as any;
+      return h.response({ message: result.message }).code(result.status);
+    } catch (error: any) {
+      return h.response({ message: error.message }).code(409);
+    }
+  },
+  async releaseEditEvent(request: Request, h: ResponseToolkit) {
+    try {
+      const user = request.auth.credentials?.user as any;
+      const eventId = request.params.id;
+      const result = (await releaseEditEventJob(
+        eventId,
+        user?.id as string
+      )) as any;
+      return h.response({ message: result.message }).code(result.status);
+    } catch (error: any) {
+      return h.response({ message: error.message }).code(409);
+    }
+  },
+
+  async requestNewVoucher(request: Request, h: ResponseToolkit) {
     try {
       const voucherInfo = request.payload as IRequestNewVoucherInfo;
-      const voucher = EventService.requestNewVoucher(voucherInfo);
-      voucher.then((res) => sendVoucherByEmailJob(voucherInfo.email, res.code));
+      const voucher = await EventService.requestNewVoucher(voucherInfo);
       return voucher;
-    } catch (error) {
-      throw badRequest("Failed to request a new voucher");
+    } catch (error: any) {
+      console.log(error.message);
+      throw error;
     }
   },
 };

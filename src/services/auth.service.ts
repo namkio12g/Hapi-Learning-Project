@@ -1,4 +1,4 @@
-import { badRequest, unauthorized } from "@hapi/boom";
+import { unauthorized } from "@hapi/boom";
 import { ILoginInfo } from "../entities/types/loginInfo.types";
 import { StudentModel, TeacherModel } from "../models";
 
@@ -10,9 +10,9 @@ export const AuthService = {
       const teacherObj = await TeacherModel.findOne(loginInfo);
       if (teacherObj) return { id: teacherObj._id, role: "teacher" };
       throw unauthorized("Cant found any user");
-    } catch (error) {
-      console.log("error at creating course", error);
-      throw badRequest("Had an error at login");
+    } catch (error: any) {
+      console.error("Error in AuthService.login:", error.message);
+      throw error;
     }
   },
 };

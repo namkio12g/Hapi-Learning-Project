@@ -92,29 +92,37 @@ export const EventService = {
 
   async requestNewVoucher(voucherInfo: IRequestNewVoucherInfo) {
     const code = randomBytes(4).toString("hex");
-    const result = (await retryTransaction(async function createNewVoucher(
-      session: ClientSession
-    ): Promise<IVoucherDocument> {
-      const eventObj = await EventModel.findById(voucherInfo.eventId);
-      if (!eventObj) throw Boom.notFound("Event not found");
-      const existedVoucher = await VoucherModel.find(
-        { eventApplied: voucherInfo.eventId },
-        { session },
-        { readPreference: "majority", readConcern: "majority" }
-      );
-      if (existedVoucher.length >= eventObj.maxVoucherQuantity)
-        throw Boom.badRequest(
-          "The event has reached its maximum number of vouchers"
+    try {
+      const result = (await retryTransaction(async function createNewVoucher(
+        session: ClientSession
+      ): Promise<IVoucherDocument> {
+        const eventObj = await EventModel.findById(voucherInfo.eventId).session(
+          session
         );
+        if (!eventObj) throw Boom.notFound("Event not found");
+        const existedVoucher = await VoucherModel.find(
+          { eventApplied: voucherInfo.eventId },
+          null,
+          { session, readPreference: "primary" }
+        );
+        if (existedVoucher.length >= eventObj.maxVoucherQuantity)
+          throw Boom.boomify(
+            new Error("The event has reached its maximum number of vouchers"),
+            { statusCode: 456 }
+          );
 
-      const voucher = new VoucherModel({
-        eventApplied: voucherInfo.eventId,
-        code: code,
-      });
+        const voucher = new VoucherModel({
+          eventApplied: voucherInfo.eventId,
+          code: code,
+        });
 
-      return (await voucher.save({ session })) as IVoucherDocument;
-    })) as IVoucherDocument;
-    return result;
+        return (await voucher.save({ session })) as IVoucherDocument;
+      })) as IVoucherDocument;
+      return result;
+    } catch (error: any) {
+      console.log(error.message);
+      throw error;
+    }
   },
 
   async getEvents(page: number, eventQuery: Partial<IEventDocument>) {

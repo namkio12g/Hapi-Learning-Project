@@ -11,7 +11,7 @@ const CourseRoutes = (server: Server) => {
       path: "/course/{id}",
       options: {
         tags: ["api"],
-        // auth: false,
+        auth: false,
         validate: {
           params: CustomJoi.object({
             id: JoiSchemas.ObjectIdInput.required(),
@@ -22,7 +22,6 @@ const CourseRoutes = (server: Server) => {
             200: JoiSchemas.CourseSchema,
           },
         },
-        pre: [requireRole("student")],
         handler: CourseController.getOneCourse,
       },
     },

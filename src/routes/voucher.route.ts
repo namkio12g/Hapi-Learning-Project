@@ -9,6 +9,7 @@ const VoucherRoutes = (server: Server) => {
       path: "/voucher/{id}",
       options: {
         tags: ["api"],
+        auth: false,
         validate: {
           params: CustomJoi.object({
             id: JoiSchemas.ObjectIdInput.required(),

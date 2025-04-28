@@ -1,10 +1,11 @@
 import mongoose, { ClientSession } from "mongoose";
 import nodemailer from "nodemailer";
+import EnvConfig from "../config/envConfig";
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   auth: {
-    user: "toilanam12309@gmail.com",
-    pass: "iyqgirgkqjihstiw",
+    user: EnvConfig.emailServiceUser,
+    pass: EnvConfig.emailServicePass,
   },
 });
 export async function sendEmail(to: string, voucherCode: string) {
@@ -29,7 +30,10 @@ export async function retryTransaction<T>(
   for (let i = 0; i < retryTime; i++) {
     const session = await mongoose.startSession();
     try {
-      session.startTransaction();
+      session.startTransaction({
+        readConcern: { level: "majority" }, // Set readConcern here
+        writeConcern: { w: "majority" }, // Optional: Set writeConcern
+      });
       const result = await transactionFn(session);
       session.commitTransaction();
       return result;
@@ -37,9 +41,9 @@ export async function retryTransaction<T>(
         "Transaction for creating a new voucher completed successfully"
       );
     } catch (err: any) {
-      console.error("Transaction failed:", err);
       await session.abortTransaction();
       session.endSession();
+
       if (
         err.hasErrorLabel?.("TransientTransactionError") ||
         err.hasErrorLabel?.("UnknownTransactionCommitResult")
@@ -47,7 +51,6 @@ export async function retryTransaction<T>(
         console.log("Retrying transaction...");
         continue;
       }
-      console.log("Retry Transaction failed with error:", err);
       throw err;
     }
   }

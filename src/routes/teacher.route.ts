@@ -3,13 +3,16 @@ import { JoiSchemas } from "../untils/JoiSchema";
 import TeacherController from "../controller/teacher.controller";
 import { Server } from "@hapi/hapi";
 import { GenderTypes } from "../entities/person.entity";
+import { requireRole } from "../middlewares/authorization";
 const TeacherRoutes = (server: Server) => {
   server.route([
     {
       method: "get",
       path: "/teacher/{id}",
+
       options: {
         tags: ["api"],
+        auth: false,
         validate: {
           params: CustomJoi.object({
             id: JoiSchemas.ObjectIdInput.required(),
@@ -28,6 +31,7 @@ const TeacherRoutes = (server: Server) => {
       path: "/teacher/get-teachers",
       options: {
         tags: ["api"],
+        auth: false,
         validate: {
           query: CustomJoi.object({
             name: CustomJoi.string().example("Nguyen").default(""),
@@ -61,6 +65,7 @@ const TeacherRoutes = (server: Server) => {
       path: "/teacher/create-teacher",
       options: {
         tags: ["api"],
+        auth: false,
         validate: {
           payload: CustomJoi.object({
             name: CustomJoi.string().required().example("Nguyen"),
@@ -86,6 +91,7 @@ const TeacherRoutes = (server: Server) => {
             200: JoiSchemas.TeacherSchema,
           },
         },
+        // pre: [requireRole("teacher")],
         handler: TeacherController.createNewTeacher,
       },
     },
@@ -117,6 +123,7 @@ const TeacherRoutes = (server: Server) => {
             200: JoiSchemas.TeacherSchema,
           },
         },
+        pre: [requireRole("teacher")],
         handler: TeacherController.updateTeacher,
       },
     },
@@ -146,6 +153,7 @@ const TeacherRoutes = (server: Server) => {
             courseId: JoiSchemas.ObjectIdInput.required(),
           }),
         },
+        pre: [requireRole("teacher")],
         response: {},
         handler: TeacherController.updateTeachingCourse,
       },
