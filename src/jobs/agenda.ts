@@ -5,7 +5,7 @@ const dbUri = EnvConfig.dbUri || "";
 const agenda = new Agenda({
   db: { address: dbUri, collection: "agendaChecking" },
 });
-
+//-----------------define an agenda schedule----------------///
 agenda.define("checking mongoDB", async () => {
   try {
     const isDbConnected = await DbConnection.ping();
@@ -15,7 +15,7 @@ agenda.define("checking mongoDB", async () => {
     console.error("DB connection checking err", error);
   }
 });
-
+//---------every minute start the schedule------------////
 agenda.on("ready", async () => {
   await agenda.start();
   await agenda.every("1 minute", "checking mongoDB");
