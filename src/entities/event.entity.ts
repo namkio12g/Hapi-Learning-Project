@@ -10,6 +10,5 @@ export interface IEvent {
   timeStart: Date;
   timeEnd: Date;
   maxVoucherQuantity: number;
-  voucher?: Types.ObjectId;
   active: string;
 }

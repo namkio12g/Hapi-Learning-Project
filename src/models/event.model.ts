@@ -9,7 +9,6 @@ const EventSchema: mongoose.Schema<IEventDocument> =
     timeStart: { type: Date, required: true, default: Date.now },
     timeEnd: { type: Date, required: true },
     maxVoucherQuantity: { type: Number, required: true },
-    voucher: { type: Types.ObjectId, ref: "voucher", default: null },
     active: {
       type: String,
       required: true,

@@ -48,12 +48,8 @@ export const CourseService = {
       throw Boom.badRequest("Had an error at updating course");
     }
   },
-
   async getCourseById(courseId: string) {
-    const res = await CourseModel.findOne({ _id: courseId }).populate(
-      "teacher",
-      "_id name"
-    );
+    const res = await CourseModel.findOne({ _id: courseId });
     if (!res) throw Boom.notFound("Course not found");
     return res;
   },

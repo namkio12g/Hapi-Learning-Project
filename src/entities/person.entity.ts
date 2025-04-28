@@ -11,4 +11,5 @@ export interface IPerson {
   address?: string;
   gender: string;
   phone: string;
+  password: string;
 }
