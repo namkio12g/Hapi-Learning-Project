@@ -9,12 +9,13 @@ sendingVoucherByEmailQueue.process("sendingVoucherByEmail", async (job) => {
   console.log("sending email to ", job.data.email, job.data.voucherCode);
 });
 
+//------- request a edit event ----------//
 checkingEditEventQueue.process("requestEditEvent", async (job) => {
-  const lockKey = `lock:event:${job.data.eventId}`;
-  const result = await redis.set(lockKey, job.data.userId, "EX", 300, "NX");
-  if (result == null) {
-    const userID = await redis.get(lockKey);
-    if (userID === job.data.userId)
+  const lockKey = `lock:event:${job.data.eventId}`;   //create lock key
+  const result = await redis.set(lockKey, job.data.userId, "EX", 300, "NX"); // set the key with and value is the userID ,expired time is 300 seconds
+  if (result == null) { // if it have already set, it would return null
+    const userID = await redis.get(lockKey);// get userID
+    if (userID === job.data.userId)// compare userID in request with the userID in redis  
       return { status: 200, message: "you are the owner of the event" };
     throw boomify(new Error("you are not the owner of the event"), {
       statusCode: 409,
@@ -22,7 +23,7 @@ checkingEditEventQueue.process("requestEditEvent", async (job) => {
   }
   return { status: 200, message: "you now start editing the event" };
 });
-
+//---------------------------maintain the edit time-----------------///
 checkingEditEventQueue.process("maintainEditEvent", async (job) => {
   const lockKey = `lock:event:${job.data.eventId}`;
   const userID = await redis.get(lockKey);
@@ -34,7 +35,7 @@ checkingEditEventQueue.process("maintainEditEvent", async (job) => {
   await redis.expire(lockKey, 300);
   return { status: 200, message: "maintaining the event edit successfully" };
 });
-
+//---------------------------Release-----------------///
 checkingEditEventQueue.process("releaseEditEvent", async (job) => {
   const lockKey = `lock:event:${job.data.eventId}`;
   const userID = await redis.get(lockKey);
