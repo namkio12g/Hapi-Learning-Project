@@ -3,6 +3,7 @@ import EnvConfig from "./envConfig";
 let dbConnection: mongoose.Connection;
 
 export const DbConnection = {
+  // -------------------- Connect database  --------------------//
   async connectDb() {
     try {
       const dbUri = EnvConfig.dbUri || "";
@@ -14,6 +15,7 @@ export const DbConnection = {
       process.exit(1);
     }
   },
+  // -------------------- ping database  --------------------//
   async ping() {
     if (!dbConnection) {
       throw new Error("No db connection");
