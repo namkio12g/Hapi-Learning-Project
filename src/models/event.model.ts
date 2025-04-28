@@ -1,6 +1,9 @@
 import mongoose, { Types } from "mongoose";
 import { EventStatuses, IEvent } from "../entities/event.entity";
+//---------create event document ------------//
 export interface IEventDocument extends IEvent, mongoose.Document {}
+
+//---------create event schema ------------//
 const EventSchema: mongoose.Schema<IEventDocument> =
   new mongoose.Schema<IEventDocument>({
     name: { type: String, required: true },
