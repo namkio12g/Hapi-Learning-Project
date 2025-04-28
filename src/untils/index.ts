@@ -25,25 +25,26 @@ export async function sendEmail(to: string, voucherCode: string) {
 }
 export async function retryTransaction<T>(
   transactionFn: (session: ClientSession) => Promise<T>,
-  retryTime: number = 3
+  retryTime: number = 3 // how many times to retry the request
 ) {
   for (let i = 0; i < retryTime; i++) {
-    const session = await mongoose.startSession();
+    const session = await mongoose.startSession();// start the session
     try {
       session.startTransaction({
-        readConcern: { level: "majority" }, // Set readConcern here
-        writeConcern: { w: "majority" }, // Optional: Set writeConcern
+        readConcern: { level: "majority" }, // Start a transaction and use options to boost synchronous read and write performance in the database
+        writeConcern: { w: "majority" }, 
       });
-      const result = await transactionFn(session);
-      session.commitTransaction();
+      const result = await transactionFn(session);// run the call back
+      session.commitTransaction(); // commit transaction
       return result;
       console.log(
         "Transaction for creating a new voucher completed successfully"
       );
     } catch (err: any) {
-      await session.abortTransaction();
-      session.endSession();
+      await session.abortTransaction(); // re roll the commit
+      session.endSession();// end session
 
+      //check if the error is TransientTransactionError or UnknownTransactionCommitResul, retry the transaction
       if (
         err.hasErrorLabel?.("TransientTransactionError") ||
         err.hasErrorLabel?.("UnknownTransactionCommitResult")
