@@ -64,6 +64,7 @@ const EventRoutes = (server: Server) => {
       options: {
         tags: ["api"],
         validate: {
+          //--------------Use joi to validate the input data-------------//
           payload: CustomJoi.object({
             name: CustomJoi.string().required().example("Summer event"),
             active: CustomJoi.string()
