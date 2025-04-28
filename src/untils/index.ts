@@ -22,8 +22,8 @@ export async function sendEmail(to: string, voucherCode: string) {
   };
 
   const info = await transporter.sendMail(mailOptions);
-  console.log("✅ Message sent:", info.messageId);
-  console.log("🔗 Preview it here:", nodemailer.getTestMessageUrl(info));
+  console.log("Message sent:", info.messageId);
+  console.log("Preview it here:", nodemailer.getTestMessageUrl(info));
 }
 //---------------------Retry transaction function-----------------//
 export async function retryTransaction<T>(
