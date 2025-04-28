@@ -1,6 +1,7 @@
 import mongoose, { ClientSession } from "mongoose";
 import nodemailer from "nodemailer";
 import EnvConfig from "../config/envConfig";
+//-----------------Define transporter----------////
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   auth: {
@@ -8,6 +9,7 @@ const transporter = nodemailer.createTransport({
     pass: EnvConfig.emailServicePass,
   },
 });
+//---------------------Send email function-----------------//
 export async function sendEmail(to: string, voucherCode: string) {
   console.log("Sending email...");
 
@@ -23,6 +25,7 @@ export async function sendEmail(to: string, voucherCode: string) {
   console.log("✅ Message sent:", info.messageId);
   console.log("🔗 Preview it here:", nodemailer.getTestMessageUrl(info));
 }
+//---------------------Retry transaction function-----------------//
 export async function retryTransaction<T>(
   transactionFn: (session: ClientSession) => Promise<T>,
   retryTime: number = 3 // how many times to retry the request
