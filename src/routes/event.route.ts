@@ -7,7 +7,8 @@ import { requireRole } from "../middlewares/authorization";
 const EventRoutes = (server: Server) => {
   server.route([
     {
-      method: "get",
+      // route for geting the event's detail
+      method: "get", 
       path: "/event/{id}",
       options: {
         tags: ["api"],
@@ -26,6 +27,7 @@ const EventRoutes = (server: Server) => {
       },
     },
     {
+      // route for filtering events
       method: "get",
       path: "/event/get-events",
       options: {
