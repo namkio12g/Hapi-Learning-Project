@@ -11,8 +11,9 @@ import { IRequestNewVoucherInfo } from "../entities/types/RequestNewVoucherInfo.
 import { retryTransaction } from "../untils";
 import { ClientSession } from "mongoose";
 
-const LIMIT_NUMBER = 6;
+const LIMIT_NUMBER = 6; // limit number of each page
 export const EventService = {
+  //-----------Create a new event-----------///
   async createEvent(eventInfo: IEventDocument) {
     if (eventInfo.timeEnd && new Date(eventInfo.timeEnd) < new Date()) {
       throw Boom.badRequest("The end time cannot be before the start time");
@@ -28,6 +29,9 @@ export const EventService = {
     }
   },
 
+
+  
+  //-----------Delete a new event-----------///
   async deleteEventById(eventId: string) {
     try {
       return await EventModel.deleteOne({ _id: eventId });
@@ -35,6 +39,8 @@ export const EventService = {
       throw Boom.badRequest("Had an error at deleting event");
     }
   },
+
+    //-----------Add courses to the event to make them eligible for discounts.-----------///
   async addCourseToEvent(eventId: string, courseIdArray: string[]) {
     const eventObj = await EventModel.findById(eventId);
     if (!eventObj) throw Boom.notFound("Can't found the event");
@@ -52,7 +58,7 @@ export const EventService = {
       throw Boom.badRequest("Had an error at adding courses to th event");
     }
   },
-
+//-----------Update events' infomation.-----------///
   async updateEvent(eventId: string, eventInfo: Partial<IEventDocument>) {
     const eventObj = await EventModel.findById(eventId);
     if (!eventObj) throw Boom.notFound("event not found");
@@ -77,6 +83,8 @@ export const EventService = {
     }
   },
 
+  
+//-----------Get detail of a event by using id.-----------///
   async getEventById(eventId: string) {
     try {
       const res = await EventModel.findOne({ _id: eventId }).populate(
@@ -89,7 +97,8 @@ export const EventService = {
       throw Boom.badRequest("Had an error at finding event");
     }
   },
-
+  
+//-----------Request a new voucher of a event .-----------///
   async requestNewVoucher(voucherInfo: IRequestNewVoucherInfo) {
     const code = randomBytes(4).toString("hex");
     try {
@@ -124,7 +133,7 @@ export const EventService = {
       throw error;
     }
   },
-
+//-----------Filer events.-----------///
   async getEvents(page: number, eventQuery: Partial<IEventDocument>) {
     try {
       let query: any = {
